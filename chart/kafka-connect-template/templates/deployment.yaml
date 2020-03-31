@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kafka-connect-template.fullname" . }}
+  labels:
+    {{- include "kafka-connect-template.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kafka-connect-template.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kafka-connect-template.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "kafka-connect-template.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                key: AWS_ACCESS_KEY_ID
+                name: {{ include "kafka-connect-template.fullname" . }}-aws
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: AWS_SECRET_ACCESS_KEY
+                name: {{ include "kafka-connect-template.fullname" . }}-aws
+        volumeMounts:
+        - name: kafka-connect-properties
+          mountPath: "/opt/kafka/config"
+          readOnly: true
+        - name: eventstreams-truststore
+          mountPath: "{{ .Values.eventstreamsTruststorePath | dir }}"
+          #subPath: "{{ .Values.eventstreamsTruststorePath | base }}"
+          readOnly: true
+          optional: true
+        ports:
+          - name: http
+            containerPort: 8083
+            protocol: TCP
+        #livenessProbe:
+        #  httpGet:
+        #    path: /
+        #    port: http
+        #readinessProbe:
+        #  httpGet:
+        #    path: /
+        #    port: http
+        #    initialDelaySeconds: 30
+        #    periodSeconds: 5
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: kafka-connect-properties
+        secret:
+          secretName: {{ include "kafka-connect-template.fullname" . }}-connect
+      - name: eventstreams-truststore
+        secret:
+          secretName: {{ include "kafka-connect-template.fullname" . }}-eventstreams
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

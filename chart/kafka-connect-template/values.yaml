@@ -1,0 +1,111 @@
+# Default values for kafka-connect-template.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+############################
+## Standard Values
+############################
+
+image:
+  repository: ibmcase/kafka-connect
+  tag: latest
+  pullPolicy: IfNotPresent
+
+bootstrapServers: ""
+offsetStorageTopic: connect-offsets
+configStorageTopic: connect-configs
+statusStorageTopic: connect-status
+
+
+eventstreamsApiKey: ""
+eventstreamsTruststorePath: /opt/kafka/certs/es-cert.jks
+eventstreamsTruststorePassword: password
+
+## Any additional configuration files placed in `chart/kafka-connect-template/config`
+## beyond the default `connect-distributed.properties` and `connect-log4j.properties`
+additionalConfigFiles: ['quickstart-s3.properties', 'quickstart-schema-source-for-s3.properties']
+
+############################
+## Connector-specific Values
+## S3 Sink Connector used as reference
+############################
+
+s3SinkConnector:
+  name: s3-sink
+  taskMax: 1
+  topics: [ "reo-sandbox" ]
+  region: us-east-1
+  bucketName: cp4i-kafka-to-s3-sandbox
+
+awsAccessKeyId: TBD
+awsSecretAccessKey: TBD
+
+
+############################
+## Default Generated Values
+############################
+
+replicaCount: 1
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8083
+
+route:
+  enabled: true
+  path: /
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

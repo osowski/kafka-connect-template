@@ -1,0 +1,19 @@
+{{- if .Values.route.enabled -}}
+{{- $fullName := include "kafka-connect-template.fullname" . -}}
+{{- $routePath := .Values.route.path -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  #TODO Add default name overrides?
+  name: {{ $fullName }}
+  labels:
+    {{- include "kafka-connect-template.labels" . | nindent 4 }}
+spec:
+  path: {{ $routePath }}
+  to:
+    kind: Service
+    name: "{{ $fullName }}"
+    weight: 100
+  port:
+    targetPort: http
+{{- end }}
