@@ -16,14 +16,13 @@ offsetStorageTopic: connect-offsets
 configStorageTopic: connect-configs
 statusStorageTopic: connect-status
 
-
 eventstreamsApiKey: ""
 eventstreamsTruststorePath: /opt/kafka/certs/es-cert.jks
 eventstreamsTruststorePassword: password
 
 ## Any additional configuration files placed in `chart/kafka-connect-template/config`
 ## beyond the default `connect-distributed.properties` and `connect-log4j.properties`
-additionalConfigFiles: ['quickstart-s3.properties', 'quickstart-schema-source-for-s3.properties']
+#additionalConfigFiles: ['quickstart-s3.properties', 'quickstart-schema-source-for-s3.properties']
 
 ############################
 ## Connector-specific Values
@@ -33,9 +32,9 @@ additionalConfigFiles: ['quickstart-s3.properties', 'quickstart-schema-source-fo
 s3SinkConnector:
   name: s3-sink
   taskMax: 1
-  topics: [ "reo-sandbox" ]
+  topics: [ "my-kafka-source-topic" ]
   region: us-east-1
-  bucketName: cp4i-kafka-to-s3-sandbox
+  bucketName: my-s3-target-bucket
 
 awsAccessKeyId: TBD
 awsSecretAccessKey: TBD
