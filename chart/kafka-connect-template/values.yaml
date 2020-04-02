@@ -36,6 +36,11 @@ s3SinkConnector:
   region: us-east-1
   bucketName: my-s3-target-bucket
 
+s3SourceConnector:
+  region: us-east-1
+  bucketName: my-s3-target-bucket
+  taskMax: 1
+
 awsAccessKeyId: TBD
 awsSecretAccessKey: TBD
 

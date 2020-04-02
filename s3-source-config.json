@@ -1,0 +1,23 @@
+{
+  "name": "kc-s3-source-kafka-EE",
+  "config": {
+    "connector.class": "io.confluent.connect.s3.source.S3SourceConnector",
+    "tasks.max": "1",
+    "s3.region": "us-east-1",
+    "s3.bucket.name": "cp4i-kafka-to-s3-sandbox",
+    "format.class": "io.confluent.connect.s3.format.json.JsonFormat",
+    "confluent.license": "",
+    "confluent.topic.bootstrap.servers":"es-2-sc-ibm-es-proxy-route-bootstrap-eventstreams.apps.__redacted__.net:443",
+    "confluent.topic.replication.factor":"1",
+    "confluent.topic.security.protocol":"SASL_SSL",
+    "confluent.topic.ssl.protocol":"TLSv1.2",
+    "confluent.topic.ssl.truststore.location":"/opt/kafka/certs/es-cert.jks",
+    "confluent.topic.ssl.truststore.password":"password",
+    "confluent.topic.sasl.mechanism":"PLAIN",
+    "confluent.topic.sasl.jaas.config":"org.apache.kafka.common.security.plain.PlainLoginModule required username=\"token\" password=\"__redacted__\";",
+    "transforms":"AddPrefix",
+    "transforms.AddPrefix.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.AddPrefix.regex": ".*",
+    "transforms.AddPrefix.replacement": "copy_of_$0"
+    }
+}

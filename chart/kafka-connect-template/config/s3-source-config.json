@@ -1,0 +1,26 @@
+{
+  "name": {{ include "kafka-connect-template.fullname" . | quote }},
+  "config": {
+    "connector.class": "io.confluent.connect.s3.source.S3SourceConnector",
+    "tasks.max": "{{ .Values.s3SourceConnector.taskMax }}",
+    "s3.region": "{{ .Values.s3SourceConnector.region }}",
+    "s3.bucket.name": "{{ .Values.s3SourceConnector.bucketName}}",
+    "format.class": "io.confluent.connect.s3.format.json.JsonFormat",
+    "confluent.license": "",
+    "confluent.topic.bootstrap.servers":"{{ .Values.bootstrapServers }}",
+    "confluent.topic.replication.factor":"1",
+    "confluent.topic.security.protocol":"SASL_SSL",
+    "confluent.topic.ssl.protocol":"TLSv1.2",
+    "confluent.topic.ssl.truststore.location":"{{ .Values.eventstreamsTruststorePath }}",
+    "confluent.topic.ssl.truststore.password":"{{ .Values.eventstreamsTruststorePassword }}",
+    "confluent.topic.sasl.mechanism":"PLAIN",
+    "confluent.topic.sasl.jaas.config":"org.apache.kafka.common.security.plain.PlainLoginModule required username=\"token\" password=\"{{ .Values.eventstreamsApiKey }}\";",
+    "transforms":"AddPrefix",
+    "transforms.AddPrefix.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.AddPrefix.regex": ".*",
+    "transforms.AddPrefix.replacement": "copy_of_$0"
+  }
+}
+{{- if .Values.refernces -}}
+- https://github.com/confluentinc/cp-docker-images/issues/657
+{{- end -}}

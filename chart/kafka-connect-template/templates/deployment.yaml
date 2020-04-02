@@ -28,8 +28,9 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-          #- name: CONNECT_PLUGIN_PATH
-          #  value: "/usr/share/java" #default for confluent image
+{{- if .Values.image.confluent }}
+          - name: CONNECT_PLUGIN_PATH
+            value: "/usr/share/java" #default for confluent image
           - name: CONNECT_BOOTSTRAP_SERVERS
             value: {{ .Values.bootstrapServers }}
           - name: CONNECT_GROUP_ID
@@ -53,7 +54,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: CONNECT_REST_PORT
-            value: "8083"
+            value: "8083" #TODO Update to use fieldPath to spec.ports.containerPort
           - name: CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE
             value: "true"
           - name: CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE
@@ -61,7 +62,8 @@ spec:
           - name: CONNECT_SSL_PROTOCOL
             value: "TLSv1.2"
           - name: CONNECT_SECURITY_PROTOCOL
-            value: "SASL_SSL"
+            value: "SASL_SSL" #Use 'PLAINTEXTSASL' instead to resolve `[2020-04-01 21:54:34,046] WARN [Consumer clientId=connector-consumer-s3-sink-3-0, groupId=connect-s3-sink-3] Bootstrap broker es-2-sc-ibm-es-proxy-route-bootstrap-eventstreams.apps.hnpoc.gv.gse-ocp.net:443 (id: -1 rack: null) disconnected (org.apache.kafka.clients.NetworkClient)` issue?
+            #reference: https://altarmoss.wordpress.com/2018/09/24/how-to-fix-kafka-consumer-group-command-getting-error-disconnected/
           - name: CONNECT_SSL_TRUSTSTORE_LOCATION
             value: "{{ .Values.eventstreamsTruststorePath }}"
           - name: CONNECT_SSL_TRUSTSTORE_PASSWORD
@@ -70,6 +72,36 @@ spec:
             value: "PLAIN"
           - name: CONNECT_SASL_JAAS_CONFIG
             value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"token\" password=\"{{ .Values.eventstreamsApiKey }}\";"
+## Consumer Security Configuration
+          - name: CONNECT_CONSUMER_SSL_PROTOCOL
+            value: "TLSv1.2"
+          - name: CONNECT_CONSUMER_SECURITY_PROTOCOL
+            value: "SASL_SSL" #Use 'PLAINTEXTSASL' instead to resolve `[2020-04-01 21:54:34,046] WARN [Consumer clientId=connector-consumer-s3-sink-3-0, groupId=connect-s3-sink-3] Bootstrap broker es-2-sc-ibm-es-proxy-route-bootstrap-eventstreams.apps.hnpoc.gv.gse-ocp.net:443 (id: -1 rack: null) disconnected (org.apache.kafka.clients.NetworkClient)` issue?
+            #reference: https://altarmoss.wordpress.com/2018/09/24/how-to-fix-kafka-consumer-group-command-getting-error-disconnected/
+          - name: CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION
+            value: "{{ .Values.eventstreamsTruststorePath }}"
+          - name: CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD
+            value: "{{ .Values.eventstreamsTruststorePassword }}"
+          - name: CONNECT_CONSUMER_SASL_MECHANISM
+            value: "PLAIN"
+          - name: CONNECT_CONSUMER_SASL_JAAS_CONFIG
+            value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"token\" password=\"{{ .Values.eventstreamsApiKey }}\";"
+## Producer Security Configuration
+          - name: CONNECT_PRODUCER_SSL_PROTOCOL
+            value: "TLSv1.2"
+          - name: CONNECT_PRODUCER_SECURITY_PROTOCOL
+            value: "SASL_SSL" #Use 'PLAINTEXTSASL' instead to resolve `[2020-04-01 21:54:34,046] WARN [Consumer clientId=connector-consumer-s3-sink-3-0, groupId=connect-s3-sink-3] Bootstrap broker es-2-sc-ibm-es-proxy-route-bootstrap-eventstreams.apps.hnpoc.gv.gse-ocp.net:443 (id: -1 rack: null) disconnected (org.apache.kafka.clients.NetworkClient)` issue?
+            #reference: https://altarmoss.wordpress.com/2018/09/24/how-to-fix-kafka-consumer-group-command-getting-error-disconnected/
+          - name: CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION
+            value: "{{ .Values.eventstreamsTruststorePath }}"
+          - name: CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD
+            value: "{{ .Values.eventstreamsTruststorePassword }}"
+          - name: CONNECT_PRODUCER_SASL_MECHANISM
+            value: "PLAIN"
+          - name: CONNECT_PRODUCER_SASL_JAAS_CONFIG
+            value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"token\" password=\"{{ .Values.eventstreamsApiKey }}\";"
+{{- end }}
+## AWS Credentials
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -81,9 +113,12 @@ spec:
                 key: AWS_SECRET_ACCESS_KEY
                 name: {{ include "kafka-connect-template.fullname" . }}-aws
         volumeMounts:
-        - name: kafka-connect-properties
-          mountPath: "/opt/kafka/config"
-          readOnly: true
+        #- name: kafka-connect-properties
+          #mountPath: "/opt/kafka/config"
+        #  mountPath: "/etc/kafka/connect-distributed.properties"
+        #  subPath: "connect-distributed.properties"
+        #  readOnly: true
+          # reference: https://docs.confluent.io/current/kafka/security_prefixes.html
         - name: eventstreams-truststore
           mountPath: "{{ .Values.eventstreamsTruststorePath | dir }}"
           readOnly: true
